@@ -1,11 +1,12 @@
-import { EFFORT_LEVELS, supportsEffort, supportsXHighEffort, THINKING_BUDGETS } from './effort.js'
-import type { DiscoveredKiroModel } from './list-models.js'
 import {
-  isGptKiroModel,
-  openCodeIdForKiroModel,
-  registerDiscoveredModel,
-  resolveKiroModel
-} from './models.js'
+  EFFORT_LEVELS,
+  supportsEffort,
+  supportsXHighEffort,
+  THINKING_BUDGETS,
+  usesReasoningEffort
+} from './effort.js'
+import type { DiscoveredKiroModel } from './list-models.js'
+import { openCodeIdForKiroModel, registerDiscoveredModel, resolveKiroModel } from './models.js'
 
 type Modalities = {
   input: Array<'text' | 'image' | 'pdf'>
@@ -17,6 +18,7 @@ const TEXT_IMAGE: Modalities = { input: ['text', 'image'], output: ['text'] }
 const MULTIMODAL: Modalities = { input: ['text', 'image', 'pdf'], output: ['text'] }
 
 const CONTEXT_200K = { context: 200000, output: 64000 }
+const CONTEXT_272K = { context: 272000, output: 64000 }
 const CONTEXT_1M = { context: 1000000, output: 64000 }
 
 interface ModelSpec {
@@ -37,9 +39,9 @@ interface ModelSpec {
 /**
  * Models Kiro exposes, keyed by the OpenCode-facing model ID.
  *
- * Anthropic and open-weight models only. Kiro's GPT-5.6 tiers are deliberately
- * absent: they configure reasoning through `reasoning.effort` / `reasoning.mode`
- * rather than `output_config.effort`, so they need their own request path.
+ * Anthropic, GPT-5.6, and open-weight models. GPT-5.6 uses hidden chain-of-thought
+ * (`reasoning.effort` on the wire): effort variants live on the base model, with
+ * no `-thinking` companion.
  */
 const MODEL_SPECS: Record<string, ModelSpec> = {
   auto: { name: 'Auto', rate: '1.0x', limit: CONTEXT_200K, modalities: MULTIMODAL },
@@ -118,6 +120,26 @@ const MODEL_SPECS: Record<string, ModelSpec> = {
     thinking: true
   },
 
+  // GPT-5.6 (hidden CoT — no -thinking companion)
+  'gpt-5.6-sol': {
+    name: 'GPT-5.6 Sol',
+    rate: '2.4x',
+    limit: CONTEXT_272K,
+    modalities: MULTIMODAL
+  },
+  'gpt-5.6-terra': {
+    name: 'GPT-5.6 Terra',
+    rate: '1.0x',
+    limit: CONTEXT_272K,
+    modalities: MULTIMODAL
+  },
+  'gpt-5.6-luna': {
+    name: 'GPT-5.6 Luna',
+    rate: '0.1x',
+    limit: CONTEXT_272K,
+    modalities: MULTIMODAL
+  },
+
   // Open weight models
   'deepseek-3.2': {
     name: 'DeepSeek 3.2',
@@ -175,11 +197,21 @@ function addModelEntry(
   kiroModel: string,
   limit: { context: number; output: number }
 ): void {
-  models[modelID] = {
+  const entry: Record<string, unknown> = {
     name: displayName(spec),
     limit,
     modalities: spec.modalities
   }
+
+  // GPT-5.6: effort ladder on the base model. No -thinking companion — hidden CoT,
+  // and OpenCode would otherwise expect reasoning_content deltas that never arrive.
+  if (usesReasoningEffort(kiroModel)) {
+    entry.variants = buildVariants(kiroModel)
+    models[modelID] = entry
+    return
+  }
+
+  models[modelID] = entry
 
   const thinking = spec.thinking ?? supportsEffort(kiroModel)
   if (!thinking || !supportsEffort(kiroModel)) return
@@ -202,7 +234,7 @@ function defaultSpecFor(discovered: DiscoveredKiroModel): ModelSpec {
       context: discovered.maxInputTokens ?? 200000,
       output: discovered.maxOutputTokens ?? 64000
     },
-    modalities: claude ? MULTIMODAL : TEXT_ONLY,
+    modalities: claude || discovered.modelId.startsWith('gpt-') ? MULTIMODAL : TEXT_ONLY,
     thinking: supportsEffort(discovered.modelId)
   }
 }
@@ -211,8 +243,6 @@ function advertiseDiscovered(discovered: DiscoveredKiroModel[]): Record<string, 
   const models: Record<string, unknown> = {}
 
   for (const item of discovered) {
-    if (isGptKiroModel(item.modelId)) continue
-
     const modelID = openCodeIdForKiroModel(item.modelId)
     const spec = MODEL_SPECS[modelID] ?? defaultSpecFor(item)
     const limit = {
@@ -221,7 +251,7 @@ function advertiseDiscovered(discovered: DiscoveredKiroModel[]): Record<string, 
     }
 
     registerDiscoveredModel(modelID, item.modelId, limit.context)
-    if (spec.thinking ?? supportsEffort(item.modelId)) {
+    if (!usesReasoningEffort(item.modelId) && (spec.thinking ?? supportsEffort(item.modelId))) {
       registerDiscoveredModel(`${modelID}-thinking`, item.modelId, limit.context)
     }
 

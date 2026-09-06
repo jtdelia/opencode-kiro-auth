@@ -3,10 +3,6 @@ import { MODEL_MAPPING, SUPPORTED_MODELS, isLongContextModel } from '../constant
 const discoveredMappings: Record<string, string> = {}
 const discoveredContextWindows: Record<string, number> = {}
 
-export function isGptKiroModel(modelId: string): boolean {
-  return /^gpt-/i.test(modelId)
-}
-
 /**
  * Map a Kiro wire ID (`claude-sonnet-4.5`) to the OpenCode-facing slug
  * (`claude-sonnet-4-5`). Open-weight IDs keep their dots.

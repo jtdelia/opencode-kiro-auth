@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  additionalModelRequestFields,
   budgetToEffort,
   getEffectiveEffort,
   resolveEffort,
   supportsEffort,
-  supportsXHighEffort
+  supportsXHighEffort,
+  usesReasoningEffort
 } from '../plugin/effort.js'
 
 describe('effort module', () => {
@@ -17,6 +19,8 @@ describe('effort module', () => {
       expect(supportsEffort('claude-sonnet-5')).toBe(true)
       expect(supportsEffort('claude-sonnet-5-1m')).toBe(true)
       expect(supportsEffort('claude-opus-5')).toBe(true)
+      expect(supportsEffort('gpt-5.6-luna')).toBe(true)
+      expect(supportsEffort('gpt-5.6-sol')).toBe(true)
     })
 
     test('returns false for unsupported models', () => {
@@ -39,6 +43,7 @@ describe('effort module', () => {
       expect(supportsXHighEffort('claude-opus-5')).toBe(true)
       expect(supportsXHighEffort('claude-sonnet-5')).toBe(true)
       expect(supportsXHighEffort('claude-sonnet-5-1m')).toBe(true)
+      expect(supportsXHighEffort('gpt-5.6-luna')).toBe(true)
     })
 
     test('returns false for other models', () => {
@@ -127,6 +132,33 @@ describe('effort module', () => {
 
     test('falls back to medium when auto-mapping disabled', () => {
       expect(getEffectiveEffort('claude-opus-4.8', true, 128000, undefined, false)).toBe('medium')
+    })
+
+    test('maps GPT-5.6 variant budgets to reasoning.effort', () => {
+      expect(getEffectiveEffort('gpt-5.6-luna', false, 20000)).toBeUndefined()
+      expect(getEffectiveEffort('gpt-5.6-luna', true, 16384)).toBe('low')
+      expect(getEffectiveEffort('gpt-5.6-luna', true, 32768)).toBe('medium')
+      expect(getEffectiveEffort('gpt-5.6-luna', true, 65536)).toBe('high')
+      expect(getEffectiveEffort('gpt-5.6-luna', true, 98304)).toBe('xhigh')
+      expect(getEffectiveEffort('gpt-5.6-luna', true, 128000)).toBe('max')
+    })
+  })
+
+  describe('GPT reasoning effort', () => {
+    test('identifies GPT-5.6 wire IDs', () => {
+      expect(usesReasoningEffort('gpt-5.6-luna')).toBe(true)
+      expect(usesReasoningEffort('gpt-5.6-sol')).toBe(true)
+      expect(usesReasoningEffort('gpt-5.6')).toBe(true)
+      expect(usesReasoningEffort('claude-opus-5')).toBe(false)
+    })
+
+    test('emits reasoning.effort for GPT and output_config for Claude', () => {
+      expect(additionalModelRequestFields('gpt-5.6-luna', 'max')).toEqual({
+        reasoning: { effort: 'max' }
+      })
+      expect(additionalModelRequestFields('claude-opus-5', 'high')).toEqual({
+        output_config: { effort: 'high' }
+      })
     })
   })
 })

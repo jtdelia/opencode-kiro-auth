@@ -37,10 +37,16 @@ describe('model registry', () => {
     )
   })
 
-  test('does not advertise Kiro GPT tiers, which use a different reasoning contract', () => {
-    for (const id of Object.keys(registry)) {
-      expect(id.startsWith('gpt-')).toBe(false)
+  test('advertises GPT-5.6 tiers with an effort ladder on the base model', () => {
+    for (const id of ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const) {
+      expect(registry[id].name).toContain('GPT-5.6')
+      expect(registry[id].limit).toEqual({ context: 272000, output: 64000 })
+      expect(registry[`${id}-thinking`]).toBeUndefined()
+      expect(Object.keys(registry[id].variants)).toEqual(['low', 'medium', 'high', 'xhigh', 'max'])
     }
+    expect(registry['gpt-5.6-sol'].name).toBe('GPT-5.6 Sol (2.4x)')
+    expect(registry['gpt-5.6-terra'].name).toBe('GPT-5.6 Terra (1.0x)')
+    expect(registry['gpt-5.6-luna'].name).toBe('GPT-5.6 Luna (0.1x)')
   })
 
   describe('reasoning capability flags', () => {
@@ -119,13 +125,21 @@ describe('model registry', () => {
       expect(discovered['claude-opus-5']).toBeUndefined()
     })
 
-    test('skips GPT IDs and registers unknown Claude models with thinking', () => {
+    test('advertises discovered GPT IDs and registers unknown Claude models with thinking', () => {
       const discovered = buildModelRegistry([
-        { modelId: 'gpt-5.6' },
+        { modelId: 'gpt-5.6-sol', displayName: 'GPT-5.6 Sol' },
         { modelId: 'claude-opus-5.1', displayName: 'Claude Opus 5.1', maxInputTokens: 1000000 }
       ]) as Record<string, any>
 
-      expect(Object.keys(discovered).filter((id) => id.startsWith('gpt-'))).toEqual([])
+      expect(discovered['gpt-5.6-sol'].name).toBe('GPT-5.6 Sol (2.4x)')
+      expect(discovered['gpt-5.6-sol-thinking']).toBeUndefined()
+      expect(Object.keys(discovered['gpt-5.6-sol'].variants)).toEqual([
+        'low',
+        'medium',
+        'high',
+        'xhigh',
+        'max'
+      ])
       expect(discovered['claude-opus-5-1'].name).toBe('Claude Opus 5.1')
       expect(discovered['claude-opus-5-1-thinking']).toMatchObject({
         reasoning: true,

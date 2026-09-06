@@ -88,6 +88,7 @@ function inferEffortSupport(kiroModel: string): { effort: boolean; xhigh: boolea
  * Check if a model supports the effort parameter.
  */
 export function supportsEffort(kiroModel: string): boolean {
+  if (usesReasoningEffort(kiroModel)) return true
   if (EFFORT_CAPABLE_MODELS.has(kiroModel)) return true
   return inferEffortSupport(kiroModel).effort
 }
@@ -96,6 +97,7 @@ export function supportsEffort(kiroModel: string): boolean {
  * Check if a model supports xhigh effort level.
  */
 export function supportsXHighEffort(kiroModel: string): boolean {
+  if (usesReasoningEffort(kiroModel)) return true
   if (XHIGH_CAPABLE_MODELS.has(kiroModel)) return true
   return inferEffortSupport(kiroModel).xhigh
 }
@@ -152,13 +154,31 @@ export function budgetToEffort(budget: number, kiroModel: string): Effort | unde
 }
 
 /**
- * Get the effective effort level based on config, budget, and model.
+ * GPT-5.6 models send effort as `reasoning.effort`. Claude uses
+ * `output_config.effort`.
+ */
+export function usesReasoningEffort(kiroModel: string): boolean {
+  return /^gpt-5\.6(?:-|$)/.test(kiroModel)
+}
+
+export function additionalModelRequestFields(
+  kiroModel: string,
+  effort?: Effort
+): Record<string, unknown> | undefined {
+  if (!effort) return undefined
+  return usesReasoningEffort(kiroModel) ? { reasoning: { effort } } : { output_config: { effort } }
+}
+
+/**
+ * Get the effective effort level based on config and model.
  *
  * Priority:
  * 1. Explicit effort config (if set) - always applied regardless of thinking state
  * 2. Budget-to-effort mapping (if auto_effort_mapping enabled and thinking)
  * 3. 'medium' default (if thinking enabled)
  * 4. undefined (if not thinking)
+ *
+ * GPT-5.6 uses the same budget bands; the wire field is `reasoning.effort`.
  */
 export function getEffectiveEffort(
   kiroModel: string,

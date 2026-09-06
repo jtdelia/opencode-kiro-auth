@@ -17,7 +17,7 @@ import {
   createToolNameRegistry,
   deduplicateToolResults
 } from '../infrastructure/transformers/tool-transformer.js'
-import { getEffectiveEffort } from './effort.js'
+import { getEffectiveEffort, usesReasoningEffort } from './effort.js'
 import {
   convertImagesToKiroFormat,
   extractAllImages,
@@ -375,6 +375,11 @@ export function transformToSdkRequest(
     conversationId: convId,
     region: extractRegionFromArn(auth.profileArn) ?? auth.region,
     toolNameMap,
-    effort
+    effort,
+    effortField: effort
+      ? usesReasoningEffort(resolved)
+        ? 'reasoning'
+        : 'output_config'
+      : undefined
   }
 }

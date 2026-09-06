@@ -1,5 +1,6 @@
 import { CodeWhispererStreamingClient } from '@aws/codewhisperer-streaming-client'
 import { KIRO_CONSTANTS } from '../constants.js'
+import { additionalModelRequestFields } from './effort.js'
 import type { Effort, KiroAuthDetails } from './types'
 
 /**
@@ -10,6 +11,7 @@ interface ClientCacheEntry {
   client: CodeWhispererStreamingClient
   token: string
   effort?: Effort
+  kiroModel?: string
 }
 
 const clientCache = new Map<string, ClientCacheEntry>()
@@ -18,12 +20,18 @@ const KIRO_CLI_MAX_ATTEMPTS = 3
 export function createSdkClient(
   auth: KiroAuthDetails,
   region: string,
-  effort?: Effort
+  effort?: Effort,
+  kiroModel?: string
 ): CodeWhispererStreamingClient {
-  const cacheKey = `${region}:${auth.email || 'default'}:${effort || 'none'}`
+  const cacheKey = `${region}:${auth.email || 'default'}:${effort || 'none'}:${kiroModel || 'default'}`
   const cached = clientCache.get(cacheKey)
 
-  if (cached && cached.token === auth.access && cached.effort === effort) {
+  if (
+    cached &&
+    cached.token === auth.access &&
+    cached.effort === effort &&
+    cached.kiroModel === kiroModel
+  ) {
     return cached.client
   }
 
@@ -55,11 +63,10 @@ export function createSdkClient(
         if (args.request?.body) {
           try {
             const body = JSON.parse(args.request.body)
-            body.additionalModelRequestFields = {
-              output_config: {
-                effort
-              }
-            }
+            body.additionalModelRequestFields = additionalModelRequestFields(
+              kiroModel || '',
+              effort
+            )
             args.request.body = JSON.stringify(body)
           } catch {
             // If body parsing fails, continue without modification
@@ -71,7 +78,7 @@ export function createSdkClient(
     )
   }
 
-  clientCache.set(cacheKey, { client, token, effort })
+  clientCache.set(cacheKey, { client, token, effort, kiroModel })
   return client
 }
 

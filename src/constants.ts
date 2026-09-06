@@ -83,6 +83,11 @@ export const MODEL_MAPPING: Record<string, string> = {
   'claude-opus-5-thinking': 'claude-opus-5',
   // Auto
   auto: 'auto',
+  // GPT-5.6
+  'gpt-5.6-sol': 'gpt-5.6-sol',
+  'gpt-5.6-terra': 'gpt-5.6-terra',
+  'gpt-5.6-luna': 'gpt-5.6-luna',
+  'gpt-5.6': 'gpt-5.6',
   // Open weight models
   'deepseek-3.2': 'deepseek-3.2',
   'glm-5': 'glm-5',

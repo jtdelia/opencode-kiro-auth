@@ -53,8 +53,9 @@ any of them are `-thinking` models.
 ### Thinking Effort Configuration
 
 Every effort-capable Claude model gets a `-thinking` companion, already carrying
-the reasoning flags and an effort ladder as variants. Nothing to configure: pick a
-`-thinking` model and cycle its variants to change reasoning depth.
+the reasoning flags and an effort ladder as variants. GPT-5.6 Sol / Terra / Luna
+put that same ladder on the base model. Nothing to configure: pick the model and
+cycle its variants to change reasoning depth.
 
 Each `-thinking` entry declares two fields that OpenCode needs in order to render
 reasoning:
@@ -97,9 +98,10 @@ reachable from a budget alone:
 get a five-variant ladder; the rest get four, and a budget in the `xhigh` band is
 clamped to `max`.
 
-Kiro's GPT-5.6 tiers are not advertised. They configure reasoning through
-`reasoning.effort` / `reasoning.mode` instead of `output_config.effort`, so they
-need a separate request path.
+GPT-5.6 Sol, Terra, and Luna carry the same `low`–`max` variant ladder on the
+base model (no `-thinking` companion). Cycling variants sets Kiro's
+`reasoning.effort`. There is no visible reasoning block — GPT hides its
+chain-of-thought.
 
 Use `~/.config/opencode/kiro.json` for plugin-wide behavior such as auth sync,
 account selection, retry limits, and `auto_effort_mapping`. A top-level `effort`

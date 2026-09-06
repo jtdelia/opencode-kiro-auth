@@ -126,6 +126,8 @@ export interface SdkPreparedRequest {
   toolNameMap?: ToolNameMap
   /** Resolved effort level for thinking models */
   effort?: Effort
+  /** Wire field for effort: Claude uses output_config, GPT-5.6 uses reasoning. */
+  effortField?: 'output_config' | 'reasoning'
 }
 
 export type AccountSelectionStrategy = 'sticky' | 'round-robin' | 'lowest-usage'

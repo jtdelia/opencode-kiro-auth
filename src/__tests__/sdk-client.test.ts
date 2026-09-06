@@ -102,6 +102,19 @@ describe('SDK client', () => {
     clearSdkClientCache()
   })
 
+  test('injects reasoning.effort for GPT-5.6 Luna', async () => {
+    clearSdkClientCache()
+
+    const client = createSdkClient(auth(), 'us-east-1', 'max', 'gpt-5.6-luna')
+    const { body, request } = await captureRequest(client)
+
+    expect(body.additionalModelRequestFields).toEqual({ reasoning: { effort: 'max' } })
+    expect(body.additionalModelRequestFields.output_config).toBeUndefined()
+    expect(Number(request.headers['content-length'])).toBe(Buffer.byteLength(request.bodyText))
+
+    clearSdkClientCache()
+  })
+
   test('does not reuse a cached client across different effort levels', () => {
     clearSdkClientCache()
 

@@ -62,7 +62,7 @@ describe('model catalog', () => {
     }
   })
 
-  test('advertises discovered IDs and skips GPT tiers', async () => {
+  test('advertises discovered IDs including GPT tiers', async () => {
     const original = globalThis.fetch
     globalThis.fetch = mockListModels({
       models: [
@@ -76,8 +76,16 @@ describe('model catalog', () => {
       const catalog = createModelCatalog({ enabled: true })
       const registry = await catalog.getRegistry(makeManager(makeAccount()))
       expect(Object.keys(registry).sort()).toEqual(
-        ['claude-sonnet-4-5', 'claude-sonnet-4-5-thinking', 'deepseek-3.2'].sort()
+        ['claude-sonnet-4-5', 'claude-sonnet-4-5-thinking', 'deepseek-3.2', 'gpt-5.6'].sort()
       )
+      expect(registry['gpt-5.6-thinking']).toBeUndefined()
+      expect(Object.keys(registry['gpt-5.6'].variants)).toEqual([
+        'low',
+        'medium',
+        'high',
+        'xhigh',
+        'max'
+      ])
       expect(registry['claude-sonnet-4-5-thinking']).toMatchObject({
         reasoning: true,
         interleaved: { field: 'reasoning_content' }
