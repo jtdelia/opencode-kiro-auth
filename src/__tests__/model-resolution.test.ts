@@ -1,6 +1,12 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { SUPPORTED_MODELS } from '../constants.js'
-import { resolveKiroModel } from '../plugin/models.js'
+import {
+  getContextWindowSize,
+  openCodeIdForKiroModel,
+  registerDiscoveredModel,
+  resetDiscoveredModels,
+  resolveKiroModel
+} from '../plugin/models.js'
 
 describe('resolveKiroModel', () => {
   test('resolves newly advertised model slugs', () => {
@@ -39,5 +45,26 @@ describe('resolveKiroModel', () => {
     expect(() => resolveKiroModel('this-model-does-not-exist')).toThrow(
       'Unsupported model: this-model-does-not-exist'
     )
+  })
+
+  test('maps Kiro wire IDs onto OpenCode slugs', () => {
+    expect(openCodeIdForKiroModel('claude-sonnet-4.5')).toBe('claude-sonnet-4-5')
+    expect(openCodeIdForKiroModel('claude-sonnet-4.5-1m')).toBe('claude-sonnet-4-5-1m')
+    expect(openCodeIdForKiroModel('deepseek-3.2')).toBe('deepseek-3.2')
+    expect(openCodeIdForKiroModel('claude-opus-5.1')).toBe('claude-opus-5-1')
+  })
+
+  describe('discovered mappings', () => {
+    afterEach(() => {
+      resetDiscoveredModels()
+    })
+
+    test('resolves and sizes newly registered models', () => {
+      registerDiscoveredModel('claude-opus-5-1', 'claude-opus-5.1', 1000000)
+      registerDiscoveredModel('claude-opus-5-1-thinking', 'claude-opus-5.1', 1000000)
+      expect(resolveKiroModel('claude-opus-5-1')).toBe('claude-opus-5.1')
+      expect(resolveKiroModel('claude-opus-5-1-thinking')).toBe('claude-opus-5.1')
+      expect(getContextWindowSize('claude-opus-5-1')).toBe(1000000)
+    })
   })
 })

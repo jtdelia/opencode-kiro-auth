@@ -7,6 +7,7 @@ import { AccountRepository } from './infrastructure/database/account-repository.
 import { AccountManager } from './plugin/accounts.js'
 import { bootstrapAuthIfNeeded } from './plugin/auth-bootstrap.js'
 import { loadConfig } from './plugin/config/index.js'
+import { createModelCatalog } from './plugin/model-discovery.js'
 import { buildModelRegistry } from './plugin/model-registry.js'
 import { formatWebSearchResults, kiroWebSearch } from './plugin/web-search.js'
 
@@ -81,6 +82,9 @@ export const createKiroPlugin =
     authHandler.setAccountManager(accountManager)
 
     const requestHandler = new RequestHandler(accountManager, config, repository, client)
+    const modelCatalog = createModelCatalog({ enabled: config.auto_discover_models !== false })
+    let userDefinedModels = false
+    let decidedUserModels = false
 
     // Compute the base URL once so both the config hook and auth loader use the same value
     const baseURL = KIRO_CONSTANTS.BASE_URL.replace('/generateAssistantResponse', '').replace(
@@ -105,6 +109,10 @@ export const createKiroPlugin =
         if (!input.provider[id].api) {
           input.provider[id].api = baseURL
         }
+        if (!decidedUserModels) {
+          userDefinedModels = !!input.provider[id].models
+          decidedUserModels = true
+        }
         if (!input.provider[id].models) {
           input.provider[id].models = buildModelRegistry()
         }
@@ -114,6 +122,9 @@ export const createKiroPlugin =
         loader: async (getAuth: any) => {
           await getAuth()
           await authHandler.initialize(showToast as any)
+          if (!userDefinedModels && config.auto_discover_models) {
+            void modelCatalog.refresh(accountManager)
+          }
 
           return {
             apiKey: '',
@@ -129,7 +140,9 @@ export const createKiroPlugin =
       provider: {
         id,
         models: async (provider: any) => {
-          const models = provider?.models || {}
+          const models = userDefinedModels
+            ? provider?.models || {}
+            : await modelCatalog.getRegistry(accountManager)
           const normalized: Record<string, any> = {}
 
           for (const [modelID, model] of Object.entries(models)) {

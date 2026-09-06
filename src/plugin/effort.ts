@@ -49,18 +49,55 @@ const EFFORT_CAPABLE_MODELS = new Set([
   ...XHIGH_CAPABLE_MODELS
 ])
 
+interface ClaudeVersion {
+  family: 'opus' | 'sonnet' | 'haiku'
+  major: number
+  minor: number
+}
+
+function parseClaudeKiroId(kiroModel: string): ClaudeVersion | null {
+  const match = kiroModel.match(/^claude-(opus|sonnet|haiku)-(\d+)(?:\.(\d+))?(?:-1m)?$/)
+  if (!match) return null
+  return {
+    family: match[1] as ClaudeVersion['family'],
+    major: Number(match[2]),
+    minor: Number(match[3] ?? 0)
+  }
+}
+
+/**
+ * Future Claude IDs returned by ListAvailableModels are not in the static sets
+ * yet. Infer from family + version so discovery can advertise thinking without
+ * a plugin bump. Matches the current catalog: opus/sonnet 4.5+, not haiku or
+ * plain sonnet-4.
+ */
+function inferEffortSupport(kiroModel: string): { effort: boolean; xhigh: boolean } {
+  const parsed = parseClaudeKiroId(kiroModel)
+  if (!parsed || parsed.family === 'haiku') return { effort: false, xhigh: false }
+
+  const effort = parsed.major > 4 || (parsed.major === 4 && parsed.minor >= 5)
+  const xhigh =
+    parsed.family === 'opus'
+      ? parsed.major > 4 || (parsed.major === 4 && parsed.minor >= 7)
+      : parsed.major >= 5
+
+  return { effort, xhigh }
+}
+
 /**
  * Check if a model supports the effort parameter.
  */
 export function supportsEffort(kiroModel: string): boolean {
-  return EFFORT_CAPABLE_MODELS.has(kiroModel)
+  if (EFFORT_CAPABLE_MODELS.has(kiroModel)) return true
+  return inferEffortSupport(kiroModel).effort
 }
 
 /**
  * Check if a model supports xhigh effort level.
  */
 export function supportsXHighEffort(kiroModel: string): boolean {
-  return XHIGH_CAPABLE_MODELS.has(kiroModel)
+  if (XHIGH_CAPABLE_MODELS.has(kiroModel)) return true
+  return inferEffortSupport(kiroModel).xhigh
 }
 
 /**

@@ -1,9 +1,9 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { SUPPORTED_MODELS } from '../constants.js'
 import type { Effort } from '../plugin/config/schema.js'
 import { budgetToEffort, THINKING_BUDGETS } from '../plugin/effort.js'
 import { buildModelRegistry } from '../plugin/model-registry.js'
-import { resolveKiroModel } from '../plugin/models.js'
+import { resetDiscoveredModels, resolveKiroModel } from '../plugin/models.js'
 
 const registry = buildModelRegistry() as Record<string, any>
 
@@ -99,5 +99,47 @@ describe('model registry', () => {
     expect(registry['claude-opus-5-thinking'].modalities).toEqual(
       registry['claude-opus-5'].modalities
     )
+  })
+
+  describe('discovered catalog', () => {
+    afterEach(() => {
+      resetDiscoveredModels()
+    })
+
+    test('advertises only discovered IDs plus thinking companions', () => {
+      const discovered = buildModelRegistry([
+        { modelId: 'claude-sonnet-4.5', displayName: 'Claude Sonnet 4.5', maxInputTokens: 200000 },
+        { modelId: 'glm-5' }
+      ]) as Record<string, any>
+
+      expect(Object.keys(discovered).sort()).toEqual(
+        ['claude-sonnet-4-5', 'claude-sonnet-4-5-thinking', 'glm-5'].sort()
+      )
+      expect(discovered['claude-sonnet-4-5'].name).toBe('Claude Sonnet 4.5 (1.3x)')
+      expect(discovered['claude-opus-5']).toBeUndefined()
+    })
+
+    test('skips GPT IDs and registers unknown Claude models with thinking', () => {
+      const discovered = buildModelRegistry([
+        { modelId: 'gpt-5.6' },
+        { modelId: 'claude-opus-5.1', displayName: 'Claude Opus 5.1', maxInputTokens: 1000000 }
+      ]) as Record<string, any>
+
+      expect(Object.keys(discovered).filter((id) => id.startsWith('gpt-'))).toEqual([])
+      expect(discovered['claude-opus-5-1'].name).toBe('Claude Opus 5.1')
+      expect(discovered['claude-opus-5-1-thinking']).toMatchObject({
+        reasoning: true,
+        interleaved: { field: 'reasoning_content' }
+      })
+      expect(Object.keys(discovered['claude-opus-5-1-thinking'].variants)).toContain('xhigh')
+      expect(resolveKiroModel('claude-opus-5-1-thinking')).toBe('claude-opus-5.1')
+    })
+
+    test('prefers discovered context size while keeping known output limits', () => {
+      const discovered = buildModelRegistry([
+        { modelId: 'claude-opus-5', maxInputTokens: 500000, maxOutputTokens: 8192 }
+      ]) as Record<string, any>
+      expect(discovered['claude-opus-5'].limit).toEqual({ context: 500000, output: 64000 })
+    })
   })
 })

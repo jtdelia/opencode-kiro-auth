@@ -40,6 +40,7 @@ export const KIRO_CONSTANTS = {
   REFRESH_IDC_URL: 'https://oidc.{{region}}.amazonaws.com/token',
   BASE_URL: 'https://q.{{region}}.amazonaws.com/generateAssistantResponse',
   USAGE_LIMITS_URL: 'https://q.{{region}}.amazonaws.com/getUsageLimits',
+  LIST_MODELS_URL: 'https://q.{{region}}.amazonaws.com/ListAvailableModels',
   DEFAULT_REGION: 'us-east-1' as KiroRegion,
   AXIOS_TIMEOUT: 120000,
   USER_AGENT: 'KiroIDE',

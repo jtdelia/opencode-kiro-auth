@@ -21,7 +21,14 @@ describe('effort module', () => {
 
     test('returns false for unsupported models', () => {
       expect(supportsEffort('claude-haiku-4.5')).toBe(false)
+      expect(supportsEffort('claude-sonnet-4')).toBe(false)
       expect(supportsEffort('unknown-model')).toBe(false)
+    })
+
+    test('infers effort for future Claude IDs returned by discovery', () => {
+      expect(supportsEffort('claude-opus-5.1')).toBe(true)
+      expect(supportsEffort('claude-sonnet-5.5')).toBe(true)
+      expect(supportsEffort('claude-opus-5.1-1m')).toBe(true)
     })
   })
 
@@ -38,6 +45,12 @@ describe('effort module', () => {
       expect(supportsXHighEffort('claude-opus-4.6')).toBe(false)
       expect(supportsXHighEffort('claude-sonnet-4.6')).toBe(false)
       expect(supportsXHighEffort('claude-opus-4.5')).toBe(false)
+    })
+
+    test('infers xhigh for future opus and sonnet-5+ IDs', () => {
+      expect(supportsXHighEffort('claude-opus-5.1')).toBe(true)
+      expect(supportsXHighEffort('claude-sonnet-5.5')).toBe(true)
+      expect(supportsXHighEffort('claude-sonnet-4.6')).toBe(false)
     })
   })
 

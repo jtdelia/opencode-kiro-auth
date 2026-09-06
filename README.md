@@ -13,6 +13,9 @@ models with substantial trial quotas.
   Start URL), and Kiro Desktop (CLI-based) authentication.
 - **Auto-Sync Kiro CLI**: Automatically imports and synchronizes active sessions from
   your local `kiro-cli` SQLite database.
+- **Model Autodiscovery**: Lists the models Kiro reports for the signed-in account
+  via `ListAvailableModels`, and falls back to the built-in catalog if that call
+  fails.
 - **Gradual Context Truncation**: Intelligently prevents error 400 by reducing context
   size dynamically during retries.
 - **Intelligent Account Rotation**: Prioritizes multi-account usage based on lowest
@@ -38,8 +41,10 @@ Add the plugin to your `opencode.json` or `opencode.jsonc`:
 ```
 
 That is the whole configuration. The plugin registers the `kiro` provider and
-advertises every model Kiro exposes, including a `-thinking` companion for each
-model that supports reasoning effort. Run `/models` to pick one.
+advertises the models your Kiro account can use. After login it calls
+`ListAvailableModels` on the Q API, overlays display names, credit rates, and
+`-thinking` companions from the built-in catalog, and falls back to that catalog
+if discovery fails or is disabled. Run `/models` to pick one.
 
 Defining `provider.kiro.models` yourself replaces the plugin's registry entirely.
 Only do that to rename or restrict models, and see the reasoning flags below if
@@ -206,6 +211,7 @@ Edit `~/.config/opencode/kiro.json`:
 ```json
 {
   "auto_sync_kiro_cli": true,
+  "auto_discover_models": true,
   "account_selection_strategy": "lowest-usage",
   "default_region": "us-east-1",
   "idc_start_url": "https://your-company.awsapps.com/start",
@@ -225,6 +231,8 @@ Edit `~/.config/opencode/kiro.json`:
 ### Configuration Options
 
 - `auto_sync_kiro_cli`: Automatically sync sessions from Kiro CLI (default: `true`).
+- `auto_discover_models`: Fetch Kiro's live model list and advertise those IDs
+  (default: `true`). Disable to keep the static catalog only.
 - `account_selection_strategy`: Account rotation strategy (`sticky`, `round-robin`,
   `lowest-usage`).
 - `default_region`: AWS region (`us-east-1`, `us-west-2`).

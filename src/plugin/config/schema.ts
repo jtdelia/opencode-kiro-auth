@@ -81,6 +81,12 @@ export const KiroConfigSchema = z.object({
 
   usage_tracking_enabled: z.boolean().default(true),
   auto_sync_kiro_cli: z.boolean().default(true),
+  /**
+   * Fetch Kiro's ListAvailableModels and advertise what the account actually
+   * has. Falls back to the static MODEL_SPECS catalog on failure. User-defined
+   * provider.kiro.models still replaces the registry entirely.
+   */
+  auto_discover_models: z.boolean().default(true),
   enable_log_api_request: z.boolean().default(false),
 
   /**
@@ -120,6 +126,7 @@ export const DEFAULT_CONFIG: KiroConfig = {
   auth_server_port_range: 10,
   usage_tracking_enabled: true,
   auto_sync_kiro_cli: true,
+  auto_discover_models: true,
   enable_log_api_request: false,
   auto_effort_mapping: true,
   web_search_enabled: true

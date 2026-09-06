@@ -1,5 +1,11 @@
 import { EFFORT_LEVELS, supportsEffort, supportsXHighEffort, THINKING_BUDGETS } from './effort.js'
-import { resolveKiroModel } from './models.js'
+import type { DiscoveredKiroModel } from './list-models.js'
+import {
+  isGptKiroModel,
+  openCodeIdForKiroModel,
+  registerDiscoveredModel,
+  resolveKiroModel
+} from './models.js'
 
 type Modalities = {
   input: Array<'text' | 'image' | 'pdf'>
@@ -16,8 +22,8 @@ const CONTEXT_1M = { context: 1000000, output: 64000 }
 interface ModelSpec {
   /** Display name, without the credit multiplier suffix. */
   name: string
-  /** Kiro credit multiplier, rendered into the display name. */
-  rate: string
+  /** Kiro credit multiplier, rendered into the display name. Absent for unknown discovered models. */
+  rate?: string
   limit: { context: number; output: number }
   modalities: Modalities
   /**
@@ -157,8 +163,80 @@ function buildVariants(kiroModel: string): Record<string, unknown> {
   return variants
 }
 
+function displayName(spec: ModelSpec, thinking = false): string {
+  const base = thinking ? `${spec.name} Thinking` : spec.name
+  return spec.rate ? `${base} (${spec.rate})` : base
+}
+
+function addModelEntry(
+  models: Record<string, unknown>,
+  modelID: string,
+  spec: ModelSpec,
+  kiroModel: string,
+  limit: { context: number; output: number }
+): void {
+  models[modelID] = {
+    name: displayName(spec),
+    limit,
+    modalities: spec.modalities
+  }
+
+  const thinking = spec.thinking ?? supportsEffort(kiroModel)
+  if (!thinking || !supportsEffort(kiroModel)) return
+
+  models[`${modelID}-thinking`] = {
+    name: displayName(spec, true),
+    limit,
+    modalities: spec.modalities,
+    reasoning: true,
+    interleaved: { field: 'reasoning_content' },
+    variants: buildVariants(kiroModel)
+  }
+}
+
+function defaultSpecFor(discovered: DiscoveredKiroModel): ModelSpec {
+  const claude = discovered.modelId.startsWith('claude-')
+  return {
+    name: discovered.displayName || discovered.modelId,
+    limit: {
+      context: discovered.maxInputTokens ?? 200000,
+      output: discovered.maxOutputTokens ?? 64000
+    },
+    modalities: claude ? MULTIMODAL : TEXT_ONLY,
+    thinking: supportsEffort(discovered.modelId)
+  }
+}
+
+function advertiseDiscovered(discovered: DiscoveredKiroModel[]): Record<string, unknown> {
+  const models: Record<string, unknown> = {}
+
+  for (const item of discovered) {
+    if (isGptKiroModel(item.modelId)) continue
+
+    const modelID = openCodeIdForKiroModel(item.modelId)
+    const spec = MODEL_SPECS[modelID] ?? defaultSpecFor(item)
+    const limit = {
+      context: item.maxInputTokens ?? spec.limit.context,
+      output: spec.limit.output
+    }
+
+    registerDiscoveredModel(modelID, item.modelId, limit.context)
+    if (spec.thinking ?? supportsEffort(item.modelId)) {
+      registerDiscoveredModel(`${modelID}-thinking`, item.modelId, limit.context)
+    }
+
+    addModelEntry(models, modelID, spec, item.modelId, limit)
+  }
+
+  return models
+}
+
 /**
  * Model registry advertised to OpenCode.
+ *
+ * Without `discovered`, advertises the static catalog. With a successful
+ * ListAvailableModels payload, advertises those IDs (plus `-thinking`
+ * companions) using MODEL_SPECS as the metadata overlay.
  *
  * `-thinking` entries carry `reasoning` and `interleaved`. Both are required:
  * `reasoning` declares the capability, and `interleaved.field` tells OpenCode
@@ -166,31 +244,17 @@ function buildVariants(kiroModel: string): Record<string, unknown> {
  * plugin emits (see streaming/openai-converter.ts). Without them OpenCode
  * silently drops every reasoning chunk and no thinking block is rendered.
  */
-export function buildModelRegistry(): Record<string, unknown> {
+export function buildModelRegistry(discovered?: DiscoveredKiroModel[]): Record<string, unknown> {
+  if (discovered && discovered.length > 0) {
+    return advertiseDiscovered(discovered)
+  }
+
   const models: Record<string, unknown> = {}
 
   for (const [modelID, spec] of Object.entries(MODEL_SPECS)) {
-    models[modelID] = {
-      name: `${spec.name} (${spec.rate})`,
-      limit: spec.limit,
-      modalities: spec.modalities
-    }
-
-    if (!spec.thinking) continue
-
     // Effort capability is keyed on the resolved Kiro model ID, not the
     // OpenCode-facing one (e.g. claude-opus-5 vs claude-opus-4-6).
-    const kiroModel = resolveKiroModel(modelID)
-    if (!supportsEffort(kiroModel)) continue
-
-    models[`${modelID}-thinking`] = {
-      name: `${spec.name} Thinking (${spec.rate})`,
-      limit: spec.limit,
-      modalities: spec.modalities,
-      reasoning: true,
-      interleaved: { field: 'reasoning_content' },
-      variants: buildVariants(kiroModel)
-    }
+    addModelEntry(models, modelID, spec, resolveKiroModel(modelID), spec.limit)
   }
 
   return models

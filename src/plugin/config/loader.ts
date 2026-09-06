@@ -157,6 +157,11 @@ function applyEnvOverrides(config: KiroConfig): KiroConfig {
       config.usage_tracking_enabled
     ),
 
+    auto_discover_models: parseBooleanEnv(
+      env.KIRO_AUTO_DISCOVER_MODELS,
+      config.auto_discover_models
+    ),
+
     enable_log_api_request: parseBooleanEnv(
       env.KIRO_ENABLE_LOG_API_REQUEST,
       config.enable_log_api_request
