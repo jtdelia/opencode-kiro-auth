@@ -13,7 +13,7 @@ import { formatWebSearchResults, kiroWebSearch } from './plugin/web-search.js'
 
 type ToastFunction = (message: string, variant: string) => void
 
-const KIRO_PROVIDER_ID = 'kiro'
+export const KIRO_PROVIDER_ID = 'kiro'
 
 // Register Kiro's server-side web search as a custom tool, when enabled and the
 // active account is Pro (has a profileArn). Returns an empty object otherwise so
@@ -21,7 +21,7 @@ const KIRO_PROVIDER_ID = 'kiro'
 //
 // The description is adapted from Kiro's own web_search tool spec so the model
 // gets the same guidance on when to search and how to attribute results.
-const WEB_SEARCH_DESCRIPTION = `Search the web using Kiro's built-in search engine. Returns titles, URLs, snippets, domains, and publish dates for a query. Billed as Kiro credits.
+export const WEB_SEARCH_DESCRIPTION = `Search the web using Kiro's built-in search engine. Returns titles, URLs, snippets, domains, and publish dates for a query. Billed as Kiro credits.
 
 ## When to Use
 - The user asks for current or up-to-date information (pricing, versions, release notes, recent events, library APIs).
@@ -42,10 +42,14 @@ const WEB_SEARCH_DESCRIPTION = `Search the web using Kiro's built-in search engi
 - ALWAYS cite sources with inline links in the format [description](url).
 - Paraphrase and summarize; do not reproduce more than ~30 consecutive words verbatim from any single source. Preserve factual accuracy while condensing.`
 
+export function isKiroWebSearchEnabled(config: any, accountManager: AccountManager): boolean {
+  return !!config.web_search_enabled && !!accountManager.getCurrentOrNext()?.profileArn
+}
+
 function buildTools(config: any, accountManager: AccountManager): Record<string, any> {
-  if (!config.web_search_enabled) return {}
+  if (!isKiroWebSearchEnabled(config, accountManager)) return {}
   const account = accountManager.getCurrentOrNext()
-  if (!account?.profileArn) return {}
+  if (!account) return {}
 
   return {
     kiro_web_search: tool({
