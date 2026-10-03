@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@zhafron/opencode-kiro-auth",
+      "name": "opencode-kiro-auth",
       "dependencies": {
         "@aws/codewhisperer-streaming-client": "^1.0.34",
         "@opencode-ai/plugin": "^1.15.11",

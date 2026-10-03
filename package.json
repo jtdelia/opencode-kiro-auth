@@ -1,5 +1,5 @@
 {
-  "name": "@zhafron/opencode-kiro-auth",
+  "name": "opencode-kiro-auth",
   "version": "2.1.0",
   "description": "OpenCode plugin for AWS Kiro (CodeWhisperer)",
   "type": "module",

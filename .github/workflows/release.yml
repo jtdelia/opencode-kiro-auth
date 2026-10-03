@@ -25,13 +25,20 @@ jobs:
       - run: bun run build
 
       - name: Pack plugin
-        run: npm pack
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          artifact="opencode-kiro-auth-${version}.tgz"
+          packed="$(npm pack)"
+          if [ "$packed" != "$artifact" ]; then
+            mv "$packed" "$artifact"
+          fi
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" *.tgz \
+          version="$(node -p "require('./package.json').version")"
+          gh release create "${GITHUB_REF_NAME}" "opencode-kiro-auth-${version}.tgz" \
             --title "${GITHUB_REF_NAME}" \
             --generate-notes \
             --verify-tag
