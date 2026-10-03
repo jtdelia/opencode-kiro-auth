@@ -6,7 +6,12 @@ import type { ToolNameMap } from '../types.js'
 import { convertToOpenAI } from './openai-converter.js'
 import { findRealTag, parseStreamBuffer } from './stream-parser.js'
 import { createTextDeltaEvents, createThinkingDeltaEvents, stopBlock } from './stream-state.js'
-import { StreamState, THINKING_END_TAG, THINKING_START_TAG, ToolCallState } from './types.js'
+import {
+  type StreamState,
+  THINKING_END_TAG,
+  THINKING_START_TAG,
+  type ToolCallState
+} from './types.js'
 
 export async function* transformKiroStream(
   response: Response,
@@ -266,7 +271,7 @@ export async function* transformKiroStream(
         try {
           const parsed = JSON.parse(tc.input)
           inputJson = JSON.stringify(parsed)
-        } catch (e) {
+        } catch {
           inputJson = tc.input
         }
 

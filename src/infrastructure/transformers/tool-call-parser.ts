@@ -4,10 +4,11 @@ export function parseBracketToolCalls(text: string): ToolCall[] {
   const toolCalls: ToolCall[] = []
   const pattern = /\[Called\s+(\w+)\s+with\s+args:\s*(\{[^}]*(?:\{[^}]*\}[^}]*)*\})\]/gs
 
-  let match: RegExpExecArray | null
-  while ((match = pattern.exec(text)) !== null) {
+  let match = pattern.exec(text)
+  while (match !== null) {
     const funcName = match[1]
     const argsStr = match[2]
+    match = pattern.exec(text)
 
     if (!funcName || !argsStr) continue
 
@@ -18,9 +19,7 @@ export function parseBracketToolCalls(text: string): ToolCall[] {
         name: funcName,
         input: args
       })
-    } catch (e) {
-      continue
-    }
+    } catch {}
   }
 
   return toolCalls

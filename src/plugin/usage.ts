@@ -1,4 +1,4 @@
-import { KiroAuthDetails, ManagedAccount } from './types'
+import type { KiroAuthDetails, ManagedAccount } from './types'
 
 export async function fetchUsageLimits(auth: KiroAuthDetails): Promise<any> {
   // Try different parameter combinations

@@ -9,20 +9,23 @@ permissions:
   contents: write
 
 jobs:
+  check:
+    uses: ./.github/workflows/ci.yml
+
   release:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
-      - uses: oven-sh/setup-bun@v2
-
-      - run: bun install
-
-      - run: bun test
-
-      - run: bun run typecheck
-
-      - run: bun run compile
+      - name: Require tag to match package version
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$tag" != "$version" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${version}"
+            exit 1
+          fi
 
       - name: Pack plugin
         run: |

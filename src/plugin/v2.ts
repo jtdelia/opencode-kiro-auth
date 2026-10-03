@@ -4,17 +4,13 @@ import { AuthHandler } from '../core/auth/auth-handler.js'
 import { RequestHandler } from '../core/request/request-handler.js'
 import { AccountCache } from '../infrastructure/database/account-cache.js'
 import { AccountRepository } from '../infrastructure/database/account-repository.js'
+import { isKiroWebSearchEnabled, KIRO_PROVIDER_ID, WEB_SEARCH_DESCRIPTION } from '../plugin.js'
 import { AccountManager } from './accounts.js'
 import { bootstrapAuthIfNeeded } from './auth-bootstrap.js'
 import { loadConfig } from './config/index.js'
 import * as logger from './logger.js'
 import { createModelCatalog } from './model-discovery.js'
 import { buildModelRegistry } from './model-registry.js'
-import {
-  isKiroWebSearchEnabled,
-  KIRO_PROVIDER_ID,
-  WEB_SEARCH_DESCRIPTION
-} from '../plugin.js'
 import { formatWebSearchResults, kiroWebSearch } from './web-search.js'
 
 const PROVIDER_PACKAGE = 'aisdk:@ai-sdk/openai-compatible'
@@ -69,7 +65,9 @@ export function toV2Models(registry: Record<string, unknown>, providerID = KIRO_
         context: model.limit?.context ?? 200000,
         output: model.limit?.output ?? 64000
       },
-      ...(thinking ? { compatibility: { reasoningField: reasoningField || 'reasoning_content' } } : {})
+      ...(thinking
+        ? { compatibility: { reasoningField: reasoningField || 'reasoning_content' } }
+        : {})
     }
   })
 }

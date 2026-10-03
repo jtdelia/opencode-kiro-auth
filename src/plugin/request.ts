@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import * as os from 'os'
-import { KIRO_CONSTANTS, buildUrl, extractRegionFromArn } from '../constants.js'
+import { buildUrl, extractRegionFromArn, KIRO_CONSTANTS } from '../constants.js'
 import {
   buildHistory,
   extractToolNamesFromHistory,
@@ -53,7 +53,7 @@ function buildCodeWhispererRequest(
   auth: KiroAuthDetails,
   think = false,
   budget = 20000,
-  showToast?: ToastFunction
+  _showToast?: ToastFunction
 ): TransformResult {
   const req = typeof body === 'string' ? JSON.parse(body) : body
   const { messages, tools, system } = req
@@ -296,7 +296,7 @@ function buildCodeWhispererRequest(
 }
 
 export function transformToCodeWhisperer(
-  url: string,
+  _url: string,
   body: any,
   model: string,
   auth: KiroAuthDetails,

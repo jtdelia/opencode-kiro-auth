@@ -117,7 +117,7 @@ export class RequestHandler {
       })
       if (!acc) {
         consecutiveNullAccounts++
-        const backoffDelay = Math.min(1000 * Math.pow(2, consecutiveNullAccounts - 1), 10000)
+        const backoffDelay = Math.min(1000 * 2 ** (consecutiveNullAccounts - 1), 10000)
         await this.sleep(backoffDelay)
         continue
       }

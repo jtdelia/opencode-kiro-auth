@@ -62,7 +62,7 @@ export class UsageTracker {
         msg.includes('TooManyRequests')
 
       if (!isRateLimit && attempt < this.config.usage_sync_max_retries) {
-        await this.sleep(1000 * Math.pow(2, attempt))
+        await this.sleep(1000 * 2 ** attempt)
         return this.syncWithRetry(account, auth, attempt + 1)
       }
 

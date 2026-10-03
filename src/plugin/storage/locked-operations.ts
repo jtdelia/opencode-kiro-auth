@@ -16,8 +16,6 @@ const LOCK_OPTIONS = {
 }
 
 export async function withDatabaseLock<T>(dbPath: string, fn: () => Promise<T>): Promise<T> {
-  const lockPath = `${dbPath}.lock`
-
   if (!existsSync(dbPath)) {
     const dir = dbPath.substring(0, dbPath.lastIndexOf('/'))
     await fs.mkdir(dir, { recursive: true })

@@ -37,7 +37,7 @@ export class AccountSelector {
       throw new Error('No accounts')
     }
 
-    let acc = this.accountManager.getCurrentOrNext()
+    const acc = this.accountManager.getCurrentOrNext()
 
     if (!acc) {
       this.circuitBreakerTrips++

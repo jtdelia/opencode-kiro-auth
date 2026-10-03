@@ -114,9 +114,7 @@ export function createToolNameRegistry(tools: unknown = []): ToolNameRegistry {
 }
 
 export function restoreToolName(name: string, toolNameMap?: ToolNameMap): string {
-  return toolNameMap && Object.prototype.hasOwnProperty.call(toolNameMap, name)
-    ? (toolNameMap[name] ?? name)
-    : name
+  return toolNameMap && Object.hasOwn(toolNameMap, name) ? (toolNameMap[name] ?? name) : name
 }
 
 function normalizeSchemaType(type: unknown): string | undefined {
@@ -158,8 +156,7 @@ function resolveLocalReference(root: JsonObject, reference: unknown): JsonObject
   let current: unknown = root
   for (const rawSegment of pointer.split('/')) {
     const segment = rawSegment.replace(/~1/g, '/').replace(/~0/g, '~')
-    if (!isRecord(current) || !Object.prototype.hasOwnProperty.call(current, segment))
-      return undefined
+    if (!isRecord(current) || !Object.hasOwn(current, segment)) return undefined
     current = current[segment]
   }
   return isRecord(current) ? current : undefined

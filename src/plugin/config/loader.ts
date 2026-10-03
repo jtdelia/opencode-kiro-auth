@@ -5,9 +5,9 @@ import * as logger from '../logger'
 import {
   AccountSelectionStrategySchema,
   DEFAULT_CONFIG,
+  type KiroConfig,
   KiroConfigSchema,
-  RegionSchema,
-  type KiroConfig
+  RegionSchema
 } from './schema'
 
 function getConfigDir(): string {
@@ -93,7 +93,7 @@ function parseNumberEnv(value: string | undefined, fallback: number): number {
     return fallback
   }
   const parsed = Number(value)
-  if (isNaN(parsed)) {
+  if (Number.isNaN(parsed)) {
     return fallback
   }
   return parsed

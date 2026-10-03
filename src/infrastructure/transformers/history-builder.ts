@@ -80,7 +80,7 @@ export function collapseAgenticLoops(history: CodeWhispererMessage[]): CodeWhisp
 }
 
 export function buildHistory(msgs: any[], resolved: string): CodeWhispererMessage[] {
-  let history: CodeWhispererMessage[] = []
+  const history: CodeWhispererMessage[] = []
   for (let i = 0; i < msgs.length - 1; i++) {
     const m = msgs[i]
     if (!m) continue
@@ -115,7 +115,7 @@ export function buildHistory(msgs: any[], resolved: string): CodeWhispererMessag
 
       if (trs.length) uim.userInputMessageContext = { toolResults: deduplicateToolResults(trs) }
       const prev = history[history.length - 1]
-      if (prev && prev.userInputMessage)
+      if (prev?.userInputMessage)
         history.push({ assistantResponseMessage: { content: '[system: conversation continues]' } })
       history.push({ userInputMessage: uim })
     } else if (m.role === 'tool') {
@@ -135,7 +135,7 @@ export function buildHistory(msgs: any[], resolved: string): CodeWhispererMessag
         })
       }
       const prev = history[history.length - 1]
-      if (prev && prev.userInputMessage)
+      if (prev?.userInputMessage)
         history.push({ assistantResponseMessage: { content: '[system: conversation continues]' } })
       history.push({
         userInputMessage: {
@@ -180,7 +180,7 @@ export function buildHistory(msgs: any[], resolved: string): CodeWhispererMessag
       }
 
       const prevMsg = history[history.length - 1]
-      if (prevMsg && prevMsg.assistantResponseMessage) {
+      if (prevMsg?.assistantResponseMessage) {
         // Merge consecutive assistant messages instead of injecting synthetic user turn
         const prev = prevMsg.assistantResponseMessage
         if (arm.content) {
@@ -204,7 +204,7 @@ export function injectSystemPrompt(
 ): CodeWhispererMessage[] {
   if (!system) return history
   const firstUserMsg = history.find((h) => !!h.userInputMessage)
-  if (firstUserMsg && firstUserMsg.userInputMessage) {
+  if (firstUserMsg?.userInputMessage) {
     const oldContent = firstUserMsg.userInputMessage.content || ''
     firstUserMsg.userInputMessage.content = `${system}\n\n${oldContent}`
   } else {

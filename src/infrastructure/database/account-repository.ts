@@ -1,5 +1,5 @@
 import { kiroDb } from '../../plugin/storage/sqlite.js'
-import { AccountCache } from './account-cache.js'
+import type { AccountCache } from './account-cache.js'
 
 export class AccountRepository {
   constructor(private cache: AccountCache) {}

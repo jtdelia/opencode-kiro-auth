@@ -125,13 +125,14 @@ export function findRealTag(buffer: string, tag: string): number {
   const codeBlockPattern = /```[\s\S]*?```/g
   const codeBlocks: Array<[number, number]> = []
 
-  let match: RegExpExecArray | null
-  while ((match = codeBlockPattern.exec(buffer)) !== null) {
+  let match = codeBlockPattern.exec(buffer)
+  while (match !== null) {
     codeBlocks.push([match.index, match.index + match[0].length])
+    match = codeBlockPattern.exec(buffer)
   }
 
-  let pos = 0
-  while ((pos = buffer.indexOf(tag, pos)) !== -1) {
+  let pos = buffer.indexOf(tag)
+  while (pos !== -1) {
     let inCodeBlock = false
     for (const [start, end] of codeBlocks) {
       if (pos >= start && pos < end) {
@@ -142,7 +143,7 @@ export function findRealTag(buffer: string, tag: string): number {
     if (!inCodeBlock) {
       return pos
     }
-    pos += tag.length
+    pos = buffer.indexOf(tag, pos + tag.length)
   }
 
   return -1

@@ -1,5 +1,5 @@
-import Database from 'libsql'
 import { existsSync } from 'node:fs'
+import Database from 'libsql'
 import { getCliDbPath, safeJsonParse } from './kiro-cli-parser'
 
 export function readActiveProfileArnFromKiroCli(): string | undefined {

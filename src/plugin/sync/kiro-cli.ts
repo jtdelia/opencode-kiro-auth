@@ -1,5 +1,5 @@
-import Database from 'libsql'
 import { existsSync } from 'node:fs'
+import Database from 'libsql'
 import { extractRegionFromArn, normalizeRegion } from '../../constants'
 import { createDeterministicAccountId } from '../accounts'
 import * as logger from '../logger'
