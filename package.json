@@ -8,6 +8,7 @@
     ".": "./index.ts"
   },
   "scripts": {
+    "compile": "tsc -p tsconfig.build.json && node scripts/fix-esm-imports.mjs",
     "format": "biome check --write .",
     "lint": "biome ci .",
     "test": "bun test",
