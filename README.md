@@ -30,29 +30,24 @@ open-weight models Kiro lists. Display names include Kiro's credit rate.
 
 ## Installation
 
-OpenCode 2 installs this plugin from GitHub. Pin the release tag so the install stays
-on that version.
+OpenCode 2.0.22 loads this plugin from a directory. `opencode plugin add` accepts a
+`github:` spec, then the bundled installer stops with `Fetching packages of type "git"
+have been disabled`.
+
+Clone the release and add that directory to `plugins`:
 
 ```sh
-opencode plugin add github:jtdelia/opencode-kiro-auth#v2.1.0
+git clone --branch v2.1.0 --depth 1 https://github.com/jtdelia/opencode-kiro-auth.git
 ```
-
-The same spec belongs in `opencode.json` or `opencode.jsonc` when you want it in a
-project config instead of the global plugin list:
 
 ```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugins": ["github:jtdelia/opencode-kiro-auth#v2.1.0"]
+  "plugins": ["/absolute/path/to/opencode-kiro-auth"]
 }
 ```
 
-`opencode plugin add` installs the plugin for your user. A `plugins` entry installs
-it for that config file. OpenCode accepts a branch, tag, or full commit after `#`.
-Leave the `#ref` off to follow the default branch. See the
-[OpenCode plugins guide](https://opencode.ai/v2/docs/plugins).
-
-The plugin registers the `kiro` provider and
+OpenCode loads `index.ts` from that directory and registers the `kiro` provider. It
 advertises the models your Kiro account can use. After login it calls
 `ListAvailableModels` on the Q API, overlays display names, credit rates, and
 `-thinking` companions from the built-in catalog, and falls back to that catalog
