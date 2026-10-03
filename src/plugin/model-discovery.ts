@@ -1,5 +1,5 @@
 import type { AccountManager } from './accounts.js'
-import { fetchAvailableModels, type DiscoveredKiroModel } from './list-models.js'
+import { type DiscoveredKiroModel, fetchAvailableModels } from './list-models.js'
 import * as logger from './logger.js'
 import { buildModelRegistry } from './model-registry.js'
 

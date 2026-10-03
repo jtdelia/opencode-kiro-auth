@@ -1,4 +1,4 @@
-import { StreamEvent, StreamState } from './types.js'
+import type { StreamEvent, StreamState } from './types.js'
 
 export function ensureBlockStart(
   blockType: 'thinking' | 'text',

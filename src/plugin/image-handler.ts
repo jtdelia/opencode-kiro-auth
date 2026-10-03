@@ -59,9 +59,7 @@ function extractImagesFromOpenAI(content: any[]): UnifiedImage[] {
             mediaType: mediaType || 'image/jpeg',
             data: data
           })
-        } catch (e) {
-          continue
-        }
+        } catch {}
       }
     }
   }

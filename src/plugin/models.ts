@@ -1,8 +1,8 @@
 import {
+  isLongContextModel,
   MODEL_CONTEXT_WINDOWS,
   MODEL_MAPPING,
-  SUPPORTED_MODELS,
-  isLongContextModel
+  SUPPORTED_MODELS
 } from '../constants'
 
 const discoveredMappings: Record<string, string> = {}

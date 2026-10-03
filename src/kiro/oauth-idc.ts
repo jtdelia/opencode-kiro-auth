@@ -1,4 +1,4 @@
-import { KIRO_AUTH_SERVICE, KIRO_CONSTANTS, buildUrl, normalizeRegion } from '../constants'
+import { buildUrl, KIRO_AUTH_SERVICE, KIRO_CONSTANTS, normalizeRegion } from '../constants'
 import type { KiroRegion } from '../plugin/types'
 
 export interface KiroIDCAuthorization {
@@ -161,7 +161,7 @@ export async function pollKiroIDCToken(
       if (responseText) {
         try {
           tokenData = JSON.parse(responseText)
-        } catch (parseError: any) {
+        } catch {
           throw new Error(
             `Token polling failed: invalid JSON response (HTTP ${tokenResponse.status}): ${responseText.slice(0, 300)}`
           )

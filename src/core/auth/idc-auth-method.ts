@@ -1,5 +1,5 @@
-import type { AuthOuathResult } from '@opencode-ai/plugin'
 import { execFile } from 'node:child_process'
+import type { AuthOuathResult } from '@opencode-ai/plugin'
 import { extractRegionFromArn, normalizeRegion } from '../../constants.js'
 import type { AccountRepository } from '../../infrastructure/database/account-repository.js'
 import { authorizeKiroIDC, pollKiroIDCToken } from '../../kiro/oauth-idc.js'

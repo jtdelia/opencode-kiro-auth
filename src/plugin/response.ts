@@ -5,12 +5,12 @@ import {
   parseBracketToolCalls
 } from '../infrastructure/transformers/tool-call-parser.js'
 import { getContextWindowSize } from './models.js'
-import { ParsedResponse, ToolCall } from './types'
+import type { ParsedResponse, ToolCall } from './types'
 
 export function parseEventStream(rawResponse: string, model?: string): ParsedResponse {
   const parsedFromEvents = parseEventStreamChunk(rawResponse, model)
   let fullResponseText = parsedFromEvents.content
-  let allToolCalls = [...parsedFromEvents.toolCalls]
+  const allToolCalls = [...parsedFromEvents.toolCalls]
 
   const rawBracketToolCalls = parseBracketToolCalls(rawResponse)
   if (rawBracketToolCalls.length > 0) {
@@ -76,7 +76,7 @@ function parseEventStreamChunk(rawText: string, model?: string): ParsedResponse 
     if (typeof tc.input === 'string' && tc.input.trim()) {
       try {
         parsedInput = JSON.parse(tc.input)
-      } catch (e) {
+      } catch {
         parsedInput = tc.input
       }
     }

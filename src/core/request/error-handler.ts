@@ -22,7 +22,7 @@ export class ErrorHandler {
   ) {}
 
   async handle(
-    error: any,
+    _error: any,
     response: Response,
     account: ManagedAccount,
     context: RequestContext,
@@ -68,10 +68,10 @@ export class ErrorHandler {
         } else if (errorData.Message) {
           errorMessage = errorData.Message
         }
-      } catch (e) {}
+      } catch {}
 
       if (account.failCount < 5) {
-        const delay = 1000 * Math.pow(2, account.failCount - 1)
+        const delay = 1000 * 2 ** (account.failCount - 1)
         showToast(`500: ${errorMessage}. Retrying in ${Math.ceil(delay / 1000)}s...`, 'warning')
         await this.sleep(delay)
         return { shouldRetry: true }
@@ -152,7 +152,7 @@ export class ErrorHandler {
         !isPermanent &&
         context.retry < this.config.rate_limit_max_retries
       ) {
-        const delay = this.config.rate_limit_retry_delay_ms * Math.pow(2, context.retry)
+        const delay = this.config.rate_limit_retry_delay_ms * 2 ** context.retry
         showToast(`403: ${errorReason}. Retrying in ${Math.ceil(delay / 1000)}s...`, 'warning')
         await this.sleep(delay)
         return {
@@ -176,7 +176,7 @@ export class ErrorHandler {
     showToast: ToastFunction
   ): Promise<{ shouldRetry: boolean; newContext?: RequestContext }> {
     if (this.isNetworkError(error) && context.retry < this.config.rate_limit_max_retries) {
-      const d = this.config.rate_limit_retry_delay_ms * Math.pow(2, context.retry)
+      const d = this.config.rate_limit_retry_delay_ms * 2 ** context.retry
       showToast(`Network error. Retrying in ${Math.ceil(d / 1000)}s...`, 'warning')
       await this.sleep(d)
       return {

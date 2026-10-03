@@ -26,7 +26,12 @@ describe('v2 model catalog', () => {
     const gpt = models.find((model) => model.id === 'gpt-5.6-sol')
 
     expect(thinking?.compatibility).toEqual({ reasoningField: 'reasoning_content' })
-    expect(thinking?.variants.map((variant) => variant.id)).toEqual(['low', 'medium', 'high', 'max'])
+    expect(thinking?.variants.map((variant) => variant.id)).toEqual([
+      'low',
+      'medium',
+      'high',
+      'max'
+    ])
     expect(thinking?.variants[0]?.body.thinkingConfig?.thinkingBudget).toBeGreaterThan(0)
     expect(gpt?.compatibility).toBeUndefined()
     expect(gpt?.variants.map((variant) => variant.id)).toEqual([

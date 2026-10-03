@@ -1,5 +1,5 @@
-import { GenerateAssistantResponseCommand } from '@aws/codewhisperer-streaming-client'
 import { describe, expect, test } from 'bun:test'
+import { GenerateAssistantResponseCommand } from '@aws/codewhisperer-streaming-client'
 import { clearSdkClientCache, createSdkClient } from '../plugin/sdk-client'
 import type { KiroAuthDetails } from '../plugin/types'
 

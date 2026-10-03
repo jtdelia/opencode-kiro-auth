@@ -1,4 +1,4 @@
-import { StreamEvent } from './types.js'
+import type { StreamEvent } from './types.js'
 
 export function convertToOpenAI(event: StreamEvent, id: string, model: string): any {
   const base = {

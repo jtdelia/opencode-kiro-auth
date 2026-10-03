@@ -8,8 +8,8 @@
     ".": "./index.ts"
   },
   "scripts": {
-    "compile": "tsc -p tsconfig.build.json && node scripts/fix-esm-imports.mjs",
-    "format": "prettier --write 'src/**/*.ts'",
+    "format": "biome check --write .",
+    "lint": "biome ci .",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -38,13 +38,10 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
     "@types/node": "^20.0.0",
     "@types/proper-lockfile": "^4.1.4",
     "bun-types": "^1.3.6",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.4.2",
-    "prettier-plugin-organize-imports": "^4.1.0",
     "typescript": "^5.7.3"
   },
   "opencode": {
@@ -59,10 +56,5 @@
     "src",
     "!src/__tests__",
     "README.md"
-  ],
-  "lint-staged": {
-    "*.ts": [
-      "prettier --write"
-    ]
-  }
+  ]
 }

@@ -1,5 +1,5 @@
-import { CodeWhispererStreamingClient } from '@aws/codewhisperer-streaming-client'
 import { afterAll, describe, expect, mock, spyOn, test } from 'bun:test'
+import { CodeWhispererStreamingClient } from '@aws/codewhisperer-streaming-client'
 import { clearSdkClientCache } from '../plugin/sdk-client.js'
 
 let sendCalls = 0

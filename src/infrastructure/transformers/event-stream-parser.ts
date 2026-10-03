@@ -5,7 +5,7 @@ interface ParsedEvent {
 
 export function parseAwsEventStreamBuffer(buffer: string): ParsedEvent[] {
   const events: ParsedEvent[] = []
-  let remaining = buffer
+  const remaining = buffer
   let searchStart = 0
 
   while (true) {
@@ -121,7 +121,7 @@ export function parseAwsEventStreamBuffer(buffer: string): ParsedEvent[] {
 export function parseEventLine(line: string): any | null {
   try {
     return JSON.parse(line)
-  } catch (e) {
+  } catch {
     return null
   }
 }

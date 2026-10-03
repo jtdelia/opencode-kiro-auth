@@ -1,5 +1,5 @@
-import z from 'zod'
-import { EffortSchema, RegionSchema } from './config/schema'
+import type z from 'zod'
+import type { EffortSchema, RegionSchema } from './config/schema'
 
 export type KiroAuthMethod = 'idc' | 'desktop'
 export type KiroRegion = z.infer<typeof RegionSchema>
