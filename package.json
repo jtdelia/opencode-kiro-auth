@@ -1,6 +1,6 @@
 {
   "name": "opencode-kiro-auth",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "OpenCode plugin for AWS Kiro (CodeWhisperer)",
   "type": "module",
   "main": "./index.ts",
@@ -8,11 +8,10 @@
     ".": "./index.ts"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/fix-esm-imports.mjs",
+    "compile": "tsc -p tsconfig.build.json && node scripts/fix-esm-imports.mjs",
     "format": "prettier --write 'src/**/*.ts'",
     "test": "bun test",
-    "typecheck": "tsc --noEmit",
-    "prepare": "husky || true"
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "opencode",
