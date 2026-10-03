@@ -74,7 +74,10 @@ describe('model catalog', () => {
 
     try {
       const catalog = createModelCatalog({ enabled: true })
-      const registry = await catalog.getRegistry(makeManager(makeAccount()))
+      const registry = (await catalog.getRegistry(makeManager(makeAccount()))) as Record<
+        string,
+        any
+      >
       expect(Object.keys(registry).sort()).toEqual(
         ['claude-sonnet-4-5', 'claude-sonnet-4-5-thinking', 'deepseek-3.2', 'gpt-5.6'].sort()
       )

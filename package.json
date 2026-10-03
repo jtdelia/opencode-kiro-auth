@@ -1,16 +1,18 @@
 {
   "name": "@zhafron/opencode-kiro-auth",
-  "version": "2.0.0",
-  "description": "OpenCode plugin for AWS Kiro (CodeWhisperer) providing access to Claude models",
+  "version": "2.1.0",
+  "description": "OpenCode plugin for AWS Kiro (CodeWhisperer)",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/fix-esm-imports.mjs",
     "format": "prettier --write 'src/**/*.ts'",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "keywords": [
     "opencode",
@@ -26,10 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tickernelz/opencode-kiro-auth.git"
-  },
-  "publishConfig": {
-    "access": "public"
+    "url": "git+https://github.com/jtdelia/opencode-kiro-auth.git"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.41",
@@ -57,8 +56,9 @@
     ]
   },
   "files": [
-    "dist",
-    "package.json",
+    "index.ts",
+    "src",
+    "!src/__tests__",
     "README.md"
   ],
   "lint-staged": {

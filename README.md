@@ -1,11 +1,10 @@
 # OpenCode Kiro Auth Plugin
 
-[![npm version](https://img.shields.io/npm/v/@zhafron/opencode-kiro-auth)](https://www.npmjs.com/package/@zhafron/opencode-kiro-auth)
-[![npm downloads](https://img.shields.io/npm/dm/@zhafron/opencode-kiro-auth)](https://www.npmjs.com/package/@zhafron/opencode-kiro-auth)
-[![license](https://img.shields.io/npm/l/@zhafron/opencode-kiro-auth)](https://www.npmjs.com/package/@zhafron/opencode-kiro-auth)
+[![release](https://img.shields.io/github/v/release/jtdelia/opencode-kiro-auth)](https://github.com/jtdelia/opencode-kiro-auth/releases)
 
-OpenCode plugin for AWS Kiro (CodeWhisperer) providing access to Claude Sonnet and Haiku
-models with substantial trial quotas.
+OpenCode plugin for AWS Kiro (CodeWhisperer). It signs in with your Kiro account and
+advertises the models that account can use, including Claude, GPT-5.6, and the
+open-weight models Kiro lists. Display names include Kiro's credit rate.
 
 ## Features
 
@@ -20,8 +19,7 @@ models with substantial trial quotas.
   size dynamically during retries.
 - **Intelligent Account Rotation**: Prioritizes multi-account usage based on lowest
   available quota.
-- **High-Performance Storage**: Efficient account and usage management using native Bun
-  SQLite.
+- **Local account storage**: Stores accounts and usage in a local libsql database.
 - **Native Thinking Mode**: Streams Kiro's native reasoning to OpenCode's thinking
   block, with the reasoning flags declared on every thinking model, so it renders
   without any model configuration.
@@ -32,15 +30,29 @@ models with substantial trial quotas.
 
 ## Installation
 
-Add the plugin to your `opencode.json` or `opencode.jsonc`:
+OpenCode 2 installs this plugin from GitHub. Pin the release tag so the install stays
+on that version.
 
-```json
+```sh
+opencode plugin add github:jtdelia/opencode-kiro-auth#v2.1.0
+```
+
+The same spec belongs in `opencode.json` or `opencode.jsonc` when you want it in a
+project config instead of the global plugin list:
+
+```jsonc
 {
-  "plugin": ["@zhafron/opencode-kiro-auth"]
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": ["github:jtdelia/opencode-kiro-auth#v2.1.0"]
 }
 ```
 
-That is the whole configuration. The plugin registers the `kiro` provider and
+`opencode plugin add` installs the plugin for your user. A `plugins` entry installs
+it for that config file. OpenCode accepts a branch, tag, or full commit after `#`.
+Leave the `#ref` off to follow the default branch. See the
+[OpenCode plugins guide](https://opencode.ai/v2/docs/plugins).
+
+The plugin registers the `kiro` provider and
 advertises the models your Kiro account can use. After login it calls
 `ListAvailableModels` on the Q API, overlays display names, credit rates, and
 `-thinking` companions from the built-in catalog, and falls back to that catalog
@@ -140,20 +152,17 @@ setting is a global override for all supported models, not a per-model setting.
 
 ## Local plugin development
 
-The simplest way to test local changes is to point OpenCode directly at your local repo
-path in `opencode.json` or `opencode.jsonc`:
+Point OpenCode at a checkout:
 
-```json
+```jsonc
 {
-  "plugin": ["/path/to/opencode-kiro-auth"]
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": ["/absolute/path/to/opencode-kiro-auth"]
 }
 ```
 
-Then build and restart OpenCode to pick up changes:
-
-```bash
-npm run build
-```
+OpenCode loads `index.ts` from that directory. Restart OpenCode after you change the
+plugin.
 
 ## Troubleshooting
 
@@ -185,7 +194,7 @@ If you need to enter provider-specific values for an OAuth login (like IAM Ident
 Center Start URL / region), use `opencode auth login`. The current TUI `/connect` flow
 may not display plugin OAuth prompts, so it can’t collect those inputs.
 
-Note for IDC/SSO (ODIC): the plugin may temporarily create an account with a placeholder
+Note for IDC/SSO (OIDC): the plugin may temporarily create an account with a placeholder
 email if it cannot fetch the real email during sync (e.g. offline).
 It will replace it with the real email once usage/email lookup succeeds.
 
@@ -222,7 +231,8 @@ Edit `~/.config/opencode/kiro.json`:
   "rate_limit_max_retries": 3,
   "max_request_iterations": 20,
   "request_timeout_ms": 120000,
-  "token_expiry_buffer_ms": 120000,
+  "token_expiry_buffer_ms": 300000,
+  "web_search_enabled": true,
   "usage_sync_max_retries": 3,
   "usage_tracking_enabled": true,
   "auto_effort_mapping": true,
@@ -237,7 +247,7 @@ Edit `~/.config/opencode/kiro.json`:
   (default: `true`). Disable to keep the static catalog only.
 - `account_selection_strategy`: Account rotation strategy (`sticky`, `round-robin`,
   `lowest-usage`).
-- `default_region`: AWS region (`us-east-1`, `us-west-2`).
+- `default_region`: AWS region for Kiro API calls. Defaults to `us-east-1`.
 - `idc_start_url`: Default IAM Identity Center Start URL (e.g.
   `https://your-company.awsapps.com/start`). Leave unset/blank to default to AWS Builder
   ID.
@@ -245,13 +255,19 @@ Edit `~/.config/opencode/kiro.json`:
   `us-east-1`.
 - `rate_limit_retry_delay_ms`: Delay between rate limit retries (1000-60000ms).
 - `rate_limit_max_retries`: Maximum retry attempts for rate limits (0-10).
-- `max_request_iterations`: Maximum loop iterations to prevent hangs (10-1000).
-- `request_timeout_ms`: Request timeout in milliseconds (60000-600000ms).
-- `token_expiry_buffer_ms`: Token refresh buffer time (30000-300000ms).
+- `max_request_iterations`: Maximum loop iterations to prevent hangs (5-1000, default
+  20).
+- `request_timeout_ms`: Request timeout in milliseconds (30000-600000, default 120000).
+- `token_expiry_buffer_ms`: Token refresh buffer time (30000-300000, default 300000).
 - `usage_sync_max_retries`: Retry attempts for usage sync (0-5).
 - `auth_server_port_start`: Legacy/ignored (no local auth server).
 - `auth_server_port_range`: Legacy/ignored (no local auth server).
-- `usage_tracking_enabled`: Enable usage tracking and toast notifications.
+- `usage_tracking_enabled`: Enable usage tracking and toast notifications (default:
+  `true`).
+- `web_search_enabled`: Register Kiro's `kiro_web_search` tool (default: `true`).
+  Kiro runs the search and bills it as credits. The tool is omitted on free Builder
+  ID accounts, which have no profile ARN. Set this to `false` when another search
+  tool should handle queries.
 - `auto_effort_mapping`: Automatically map OpenCode thinking budgets to Kiro effort
   levels for supported models (default: `true`).
 - `enable_log_api_request`: Enable detailed API request logging. Request logs
