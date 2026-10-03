@@ -68,6 +68,8 @@ export const MODEL_MAPPING: Record<string, string> = {
   'claude-sonnet-5-thinking': 'claude-sonnet-5',
   'claude-sonnet-5-1m': 'claude-sonnet-5-1m',
   'claude-sonnet-5-1m-thinking': 'claude-sonnet-5-1m',
+  'claude-sonnet-5-5': 'claude-sonnet-5.5',
+  'claude-sonnet-5-5-thinking': 'claude-sonnet-5.5',
   // Claude Opus
   'claude-opus-4-5': 'claude-opus-4.5',
   'claude-opus-4-5-thinking': 'claude-opus-4.5',
@@ -81,6 +83,8 @@ export const MODEL_MAPPING: Record<string, string> = {
   'claude-opus-4-8-thinking': 'claude-opus-4.8',
   'claude-opus-5': 'claude-opus-5',
   'claude-opus-5-thinking': 'claude-opus-5',
+  'claude-opus-5-5': 'claude-opus-5.5',
+  'claude-opus-5-5-thinking': 'claude-opus-5.5',
   // Auto
   auto: 'auto',
   // GPT-5.6
@@ -100,6 +104,34 @@ export const MODEL_MAPPING: Record<string, string> = {
   'gpt-oss-120b': 'OPENAI_GPT_OSS_120B_1_0',
   'minimax-m2': 'MINIMAX_MINIMAX_M2',
   'kimi-k2-thinking': 'MOONSHOT_KIMI_K2_THINKING'
+}
+
+/**
+ * Context windows from `kiro-cli chat --list-models` (`context_window_tokens`),
+ * keyed by the OpenCode-facing model ID. Thinking companions share the base ID.
+ */
+export const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
+  auto: 1_000_000,
+  'claude-sonnet-4': 200_000,
+  'claude-sonnet-4-5': 200_000,
+  'claude-sonnet-4-6': 1_000_000,
+  'claude-sonnet-5': 1_000_000,
+  'claude-sonnet-5-5': 1_000_000,
+  'claude-haiku-4-5': 200_000,
+  'claude-opus-4-5': 200_000,
+  'claude-opus-4-6': 1_000_000,
+  'claude-opus-4-7': 1_000_000,
+  'claude-opus-4-8': 1_000_000,
+  'claude-opus-5': 1_000_000,
+  'claude-opus-5-5': 1_000_000,
+  'gpt-5.6-sol': 1_000_000,
+  'gpt-5.6-terra': 1_000_000,
+  'gpt-5.6-luna': 1_000_000,
+  'deepseek-3.2': 164_000,
+  'glm-5': 200_000,
+  'minimax-m2.5': 196_000,
+  'minimax-m2.1': 196_000,
+  'qwen3-coder-next': 256_000
 }
 
 export const SUPPORTED_MODELS = Object.keys(MODEL_MAPPING)

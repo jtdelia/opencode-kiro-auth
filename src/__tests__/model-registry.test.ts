@@ -3,7 +3,7 @@ import { SUPPORTED_MODELS } from '../constants.js'
 import type { Effort } from '../plugin/config/schema.js'
 import { budgetToEffort, THINKING_BUDGETS } from '../plugin/effort.js'
 import { buildModelRegistry } from '../plugin/model-registry.js'
-import { resetDiscoveredModels, resolveKiroModel } from '../plugin/models.js'
+import { getContextWindowSize, resetDiscoveredModels, resolveKiroModel } from '../plugin/models.js'
 
 const registry = buildModelRegistry() as Record<string, any>
 
@@ -12,7 +12,9 @@ const XHIGH_MODELS = [
   'claude-opus-4-7-thinking',
   'claude-opus-4-8-thinking',
   'claude-opus-5-thinking',
-  'claude-sonnet-5-thinking'
+  'claude-opus-5-5-thinking',
+  'claude-sonnet-5-thinking',
+  'claude-sonnet-5-5-thinking'
 ]
 
 describe('model registry', () => {
@@ -30,9 +32,11 @@ describe('model registry', () => {
         'claude-opus-4-7-thinking',
         'claude-opus-4-8-thinking',
         'claude-opus-5-thinking',
+        'claude-opus-5-5-thinking',
         'claude-sonnet-4-5-thinking',
         'claude-sonnet-4-6-thinking',
-        'claude-sonnet-5-thinking'
+        'claude-sonnet-5-thinking',
+        'claude-sonnet-5-5-thinking'
       ].sort()
     )
   })
@@ -40,13 +44,30 @@ describe('model registry', () => {
   test('advertises GPT-5.6 tiers with an effort ladder on the base model', () => {
     for (const id of ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const) {
       expect(registry[id].name).toContain('GPT-5.6')
-      expect(registry[id].limit).toEqual({ context: 272000, output: 64000 })
+      expect(registry[id].limit).toEqual({ context: 1000000, output: 64000 })
       expect(registry[`${id}-thinking`]).toBeUndefined()
       expect(Object.keys(registry[id].variants)).toEqual(['low', 'medium', 'high', 'xhigh', 'max'])
     }
-    expect(registry['gpt-5.6-sol'].name).toBe('GPT-5.6 Sol (2.4x)')
-    expect(registry['gpt-5.6-terra'].name).toBe('GPT-5.6 Terra (1.0x)')
-    expect(registry['gpt-5.6-luna'].name).toBe('GPT-5.6 Luna (0.1x)')
+    expect(registry['gpt-5.6-sol'].name).toBe('GPT-5.6 Sol (4.4x)')
+    expect(registry['gpt-5.6-terra'].name).toBe('GPT-5.6 Terra (2.2x)')
+    expect(registry['gpt-5.6-luna'].name).toBe('GPT-5.6 Luna (0.6x)')
+  })
+
+  test('matches kiro-cli credit factors and context windows', () => {
+    expect(registry['auto'].limit).toEqual({ context: 1000000, output: 64000 })
+    expect(registry['auto'].name).toBe('Auto (1.0x)')
+    expect(registry['claude-opus-5-5'].name).toBe('Claude Opus 5.5 (2.0x)')
+    expect(registry['claude-sonnet-5-5'].name).toBe('Claude Sonnet 5.5 (1.3x)')
+    expect(registry['claude-opus-5-5'].limit).toEqual({ context: 1000000, output: 64000 })
+    expect(registry['claude-sonnet-5-5'].limit).toEqual({ context: 1000000, output: 64000 })
+    expect(registry['deepseek-3.2'].limit).toEqual({ context: 164000, output: 64000 })
+    expect(registry['deepseek-3.2'].name).toBe('DeepSeek 3.2 (0.25x)')
+  })
+
+  test('usage accounting uses the advertised context window', () => {
+    for (const [id, model] of Object.entries(registry)) {
+      expect(getContextWindowSize(id)).toBe(model.limit.context)
+    }
   })
 
   describe('reasoning capability flags', () => {
@@ -131,7 +152,7 @@ describe('model registry', () => {
         { modelId: 'claude-opus-5.1', displayName: 'Claude Opus 5.1', maxInputTokens: 1000000 }
       ]) as Record<string, any>
 
-      expect(discovered['gpt-5.6-sol'].name).toBe('GPT-5.6 Sol (2.4x)')
+      expect(discovered['gpt-5.6-sol'].name).toBe('GPT-5.6 Sol (4.4x)')
       expect(discovered['gpt-5.6-sol-thinking']).toBeUndefined()
       expect(Object.keys(discovered['gpt-5.6-sol'].variants)).toEqual([
         'low',

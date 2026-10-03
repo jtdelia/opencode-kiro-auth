@@ -1,3 +1,4 @@
+import { MODEL_CONTEXT_WINDOWS } from '../constants'
 import {
   EFFORT_LEVELS,
   supportsEffort,
@@ -17,9 +18,15 @@ const TEXT_ONLY: Modalities = { input: ['text'], output: ['text'] }
 const TEXT_IMAGE: Modalities = { input: ['text', 'image'], output: ['text'] }
 const MULTIMODAL: Modalities = { input: ['text', 'image', 'pdf'], output: ['text'] }
 
-const CONTEXT_200K = { context: 200000, output: 64000 }
-const CONTEXT_272K = { context: 272000, output: 64000 }
-const CONTEXT_1M = { context: 1000000, output: 64000 }
+const OUTPUT_TOKENS = 64000
+
+function limitFor(modelID: string): { context: number; output: number } {
+  const context = MODEL_CONTEXT_WINDOWS[modelID]
+  if (context === undefined) {
+    throw new Error(`Missing context window for ${modelID}`)
+  }
+  return { context, output: OUTPUT_TOKENS }
+}
 
 interface ModelSpec {
   /** Display name, without the credit multiplier suffix. */
@@ -44,33 +51,40 @@ interface ModelSpec {
  * no `-thinking` companion.
  */
 const MODEL_SPECS: Record<string, ModelSpec> = {
-  auto: { name: 'Auto', rate: '1.0x', limit: CONTEXT_200K, modalities: MULTIMODAL },
+  auto: { name: 'Auto', rate: '1.0x', limit: limitFor('auto'), modalities: MULTIMODAL },
 
   // Claude Sonnet
   'claude-sonnet-4': {
     name: 'Claude Sonnet 4.0',
     rate: '1.3x',
-    limit: CONTEXT_200K,
+    limit: limitFor('claude-sonnet-4'),
     modalities: MULTIMODAL
   },
   'claude-sonnet-4-5': {
     name: 'Claude Sonnet 4.5',
     rate: '1.3x',
-    limit: CONTEXT_200K,
+    limit: limitFor('claude-sonnet-4-5'),
     modalities: MULTIMODAL,
     thinking: true
   },
   'claude-sonnet-4-6': {
     name: 'Claude Sonnet 4.6',
     rate: '1.3x',
-    limit: CONTEXT_1M,
+    limit: limitFor('claude-sonnet-4-6'),
     modalities: MULTIMODAL,
     thinking: true
   },
   'claude-sonnet-5': {
     name: 'Claude Sonnet 5',
     rate: '1.3x',
-    limit: CONTEXT_1M,
+    limit: limitFor('claude-sonnet-5'),
+    modalities: MULTIMODAL,
+    thinking: true
+  },
+  'claude-sonnet-5-5': {
+    name: 'Claude Sonnet 5.5',
+    rate: '1.3x',
+    limit: limitFor('claude-sonnet-5-5'),
     modalities: MULTIMODAL,
     thinking: true
   },
@@ -79,7 +93,7 @@ const MODEL_SPECS: Record<string, ModelSpec> = {
   'claude-haiku-4-5': {
     name: 'Claude Haiku 4.5',
     rate: '0.4x',
-    limit: CONTEXT_200K,
+    limit: limitFor('claude-haiku-4-5'),
     modalities: TEXT_IMAGE
   },
 
@@ -87,35 +101,42 @@ const MODEL_SPECS: Record<string, ModelSpec> = {
   'claude-opus-4-5': {
     name: 'Claude Opus 4.5',
     rate: '2.2x',
-    limit: CONTEXT_200K,
+    limit: limitFor('claude-opus-4-5'),
     modalities: MULTIMODAL,
     thinking: true
   },
   'claude-opus-4-6': {
     name: 'Claude Opus 4.6',
     rate: '2.2x',
-    limit: CONTEXT_1M,
+    limit: limitFor('claude-opus-4-6'),
     modalities: MULTIMODAL,
     thinking: true
   },
   'claude-opus-4-7': {
     name: 'Claude Opus 4.7',
     rate: '2.2x',
-    limit: CONTEXT_1M,
+    limit: limitFor('claude-opus-4-7'),
     modalities: MULTIMODAL,
     thinking: true
   },
   'claude-opus-4-8': {
     name: 'Claude Opus 4.8',
     rate: '2.2x',
-    limit: CONTEXT_1M,
+    limit: limitFor('claude-opus-4-8'),
     modalities: MULTIMODAL,
     thinking: true
   },
   'claude-opus-5': {
     name: 'Claude Opus 5',
     rate: '2.2x',
-    limit: CONTEXT_1M,
+    limit: limitFor('claude-opus-5'),
+    modalities: MULTIMODAL,
+    thinking: true
+  },
+  'claude-opus-5-5': {
+    name: 'Claude Opus 5.5',
+    rate: '2.0x',
+    limit: limitFor('claude-opus-5-5'),
     modalities: MULTIMODAL,
     thinking: true
   },
@@ -123,20 +144,20 @@ const MODEL_SPECS: Record<string, ModelSpec> = {
   // GPT-5.6 (hidden CoT — no -thinking companion)
   'gpt-5.6-sol': {
     name: 'GPT-5.6 Sol',
-    rate: '2.4x',
-    limit: CONTEXT_272K,
+    rate: '4.4x',
+    limit: limitFor('gpt-5.6-sol'),
     modalities: MULTIMODAL
   },
   'gpt-5.6-terra': {
     name: 'GPT-5.6 Terra',
-    rate: '1.0x',
-    limit: CONTEXT_272K,
+    rate: '2.2x',
+    limit: limitFor('gpt-5.6-terra'),
     modalities: MULTIMODAL
   },
   'gpt-5.6-luna': {
     name: 'GPT-5.6 Luna',
-    rate: '0.1x',
-    limit: CONTEXT_272K,
+    rate: '0.6x',
+    limit: limitFor('gpt-5.6-luna'),
     modalities: MULTIMODAL
   },
 
@@ -144,26 +165,26 @@ const MODEL_SPECS: Record<string, ModelSpec> = {
   'deepseek-3.2': {
     name: 'DeepSeek 3.2',
     rate: '0.25x',
-    limit: { context: 128000, output: 64000 },
+    limit: limitFor('deepseek-3.2'),
     modalities: TEXT_ONLY
   },
-  'glm-5': { name: 'GLM-5', rate: '0.5x', limit: CONTEXT_200K, modalities: TEXT_ONLY },
+  'glm-5': { name: 'GLM-5', rate: '0.5x', limit: limitFor('glm-5'), modalities: TEXT_ONLY },
   'minimax-m2.5': {
     name: 'MiniMax M2.5',
     rate: '0.25x',
-    limit: { context: 196000, output: 64000 },
+    limit: limitFor('minimax-m2.5'),
     modalities: TEXT_ONLY
   },
   'minimax-m2.1': {
     name: 'MiniMax M2.1',
     rate: '0.15x',
-    limit: { context: 196000, output: 64000 },
+    limit: limitFor('minimax-m2.1'),
     modalities: TEXT_ONLY
   },
   'qwen3-coder-next': {
     name: 'Qwen3 Coder Next',
     rate: '0.05x',
-    limit: { context: 256000, output: 64000 },
+    limit: limitFor('qwen3-coder-next'),
     modalities: TEXT_ONLY
   }
 }

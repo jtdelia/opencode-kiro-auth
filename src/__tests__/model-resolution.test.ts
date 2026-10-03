@@ -34,6 +34,18 @@ describe('resolveKiroModel', () => {
     expect(resolveKiroModel('claude-sonnet-5-1m-thinking')).toBe('claude-sonnet-5-1m')
   })
 
+  test('resolves claude 5.5 slugs', () => {
+    expect(resolveKiroModel('claude-opus-5-5')).toBe('claude-opus-5.5')
+    expect(resolveKiroModel('claude-opus-5-5-thinking')).toBe('claude-opus-5.5')
+    expect(resolveKiroModel('claude-sonnet-5-5')).toBe('claude-sonnet-5.5')
+    expect(resolveKiroModel('claude-sonnet-5-5-thinking')).toBe('claude-sonnet-5.5')
+    expect(getContextWindowSize('claude-opus-5-5')).toBe(1000000)
+    expect(getContextWindowSize('claude-opus-5-5-thinking')).toBe(1000000)
+    expect(getContextWindowSize('gpt-5.6-luna')).toBe(1000000)
+    expect(getContextWindowSize('deepseek-3.2')).toBe(164000)
+    expect(getContextWindowSize('auto')).toBe(1000000)
+  })
+
   test('rejects removed qwen3-coder-480b slug', () => {
     expect(() => resolveKiroModel('qwen3-coder-480b')).toThrow(
       'Unsupported model: qwen3-coder-480b'
@@ -55,6 +67,8 @@ describe('resolveKiroModel', () => {
     expect(openCodeIdForKiroModel('claude-sonnet-4.5-1m')).toBe('claude-sonnet-4-5-1m')
     expect(openCodeIdForKiroModel('deepseek-3.2')).toBe('deepseek-3.2')
     expect(openCodeIdForKiroModel('claude-opus-5.1')).toBe('claude-opus-5-1')
+    expect(openCodeIdForKiroModel('claude-opus-5.5')).toBe('claude-opus-5-5')
+    expect(openCodeIdForKiroModel('claude-sonnet-5.5')).toBe('claude-sonnet-5-5')
   })
 
   describe('discovered mappings', () => {

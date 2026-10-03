@@ -1,4 +1,9 @@
-import { MODEL_MAPPING, SUPPORTED_MODELS, isLongContextModel } from '../constants'
+import {
+  MODEL_CONTEXT_WINDOWS,
+  MODEL_MAPPING,
+  SUPPORTED_MODELS,
+  isLongContextModel
+} from '../constants'
 
 const discoveredMappings: Record<string, string> = {}
 const discoveredContextWindows: Record<string, number> = {}
@@ -49,5 +54,8 @@ export function resolveKiroModel(model: string): string {
 export function getContextWindowSize(model: string): number {
   const discovered = discoveredContextWindows[model]
   if (discovered) return discovered
-  return isLongContextModel(model) ? 1000000 : 200000
+  const base = model.endsWith('-thinking') ? model.slice(0, -'-thinking'.length) : model
+  const known = MODEL_CONTEXT_WINDOWS[base]
+  if (known) return known
+  return isLongContextModel(base) ? 1000000 : 200000
 }

@@ -19,6 +19,8 @@ describe('effort module', () => {
       expect(supportsEffort('claude-sonnet-5')).toBe(true)
       expect(supportsEffort('claude-sonnet-5-1m')).toBe(true)
       expect(supportsEffort('claude-opus-5')).toBe(true)
+      expect(supportsEffort('claude-opus-5.5')).toBe(true)
+      expect(supportsEffort('claude-sonnet-5.5')).toBe(true)
       expect(supportsEffort('gpt-5.6-luna')).toBe(true)
       expect(supportsEffort('gpt-5.6-sol')).toBe(true)
     })
@@ -31,17 +33,20 @@ describe('effort module', () => {
 
     test('infers effort for future Claude IDs returned by discovery', () => {
       expect(supportsEffort('claude-opus-5.1')).toBe(true)
-      expect(supportsEffort('claude-sonnet-5.5')).toBe(true)
+      expect(supportsEffort('claude-opus-6')).toBe(true)
+      expect(supportsEffort('claude-sonnet-6')).toBe(true)
       expect(supportsEffort('claude-opus-5.1-1m')).toBe(true)
     })
   })
 
   describe('supportsXHighEffort', () => {
-    test('returns true for opus 4.7/4.8/5 and sonnet 5', () => {
+    test('returns true for opus 4.7/4.8/5/5.5 and sonnet 5/5.5', () => {
       expect(supportsXHighEffort('claude-opus-4.8')).toBe(true)
       expect(supportsXHighEffort('claude-opus-4.7')).toBe(true)
       expect(supportsXHighEffort('claude-opus-5')).toBe(true)
+      expect(supportsXHighEffort('claude-opus-5.5')).toBe(true)
       expect(supportsXHighEffort('claude-sonnet-5')).toBe(true)
+      expect(supportsXHighEffort('claude-sonnet-5.5')).toBe(true)
       expect(supportsXHighEffort('claude-sonnet-5-1m')).toBe(true)
       expect(supportsXHighEffort('gpt-5.6-luna')).toBe(true)
     })
@@ -54,7 +59,8 @@ describe('effort module', () => {
 
     test('infers xhigh for future opus and sonnet-5+ IDs', () => {
       expect(supportsXHighEffort('claude-opus-5.1')).toBe(true)
-      expect(supportsXHighEffort('claude-sonnet-5.5')).toBe(true)
+      expect(supportsXHighEffort('claude-opus-6')).toBe(true)
+      expect(supportsXHighEffort('claude-sonnet-6')).toBe(true)
       expect(supportsXHighEffort('claude-sonnet-4.6')).toBe(false)
     })
   })
@@ -100,6 +106,8 @@ describe('effort module', () => {
     test('reaches xhigh on every xhigh-capable model', () => {
       expect(budgetToEffort(98304, 'claude-opus-4.7')).toBe('xhigh')
       expect(budgetToEffort(98304, 'claude-opus-5')).toBe('xhigh')
+      expect(budgetToEffort(98304, 'claude-opus-5.5')).toBe('xhigh')
+      expect(budgetToEffort(98304, 'claude-sonnet-5.5')).toBe('xhigh')
     })
 
     test('clamps the xhigh band to max for non-xhigh models', () => {
